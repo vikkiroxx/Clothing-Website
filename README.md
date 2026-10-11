@@ -2,11 +2,26 @@
 
 E-commerce storefront (catalog, cart, orders) — Next.js frontend, Express/Prisma backend, single PostgreSQL database.
 
-## Stack
+## Tech Stack
 
-- **Frontend:** Next.js (App Router) + TypeScript + Tailwind CSS — `frontend/`
-- **Backend:** Node.js + Express + TypeScript + Prisma — `backend/`
-- **Database:** PostgreSQL
+### Frontend — `frontend/`
+- **Next.js** (App Router) — SSR/SSG for product pages, SEO, fast loads
+- **TypeScript**
+- **Tailwind CSS** — styling
+
+### Backend — `backend/`
+- **Node.js + Express** — REST API
+- **TypeScript**
+- **Prisma** (pinned to `6.19.3`, not the `8.0.0-rc` the CLI defaults to — v7+ dropped the classic `datasource url` schema syntax used here) — ORM, migrations, type-safe queries
+- **PostgreSQL** driver via `@prisma/client`
+- **JWT (`jsonwebtoken`) + `bcryptjs`** — auth
+- **Zod** — request validation
+- **Helmet, CORS, Morgan** — security headers, cross-origin access, request logging
+
+### Database
+- **PostgreSQL** (single database — no Mongo/SQL split)
+  - Catalog flexibility (variant attributes, sizes, colors) handled via a `JSONB` column rather than a separate document store
+  - Orders/inventory use relational tables with a single DB transaction per checkout (atomic stock decrement), avoiding the eventual-consistency and dual-write complexity a second database would add
 
 ## Getting started
 
