@@ -1,0 +1,32 @@
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import authRoutes from "@/routes/auth.routes";
+import productRoutes from "@/routes/product.routes";
+import categoryRoutes from "@/routes/category.routes";
+import cartRoutes from "@/routes/cart.routes";
+import orderRoutes from "@/routes/order.routes";
+import { errorHandler, notFound } from "@/middleware/errorHandler";
+
+const app = express();
+
+app.use(helmet());
+app.use(cors());
+app.use(morgan("dev"));
+app.use(express.json());
+
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
