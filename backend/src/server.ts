@@ -8,6 +8,7 @@ import productRoutes from "@/routes/product.routes";
 import categoryRoutes from "@/routes/category.routes";
 import cartRoutes from "@/routes/cart.routes";
 import orderRoutes from "@/routes/order.routes";
+import uploadRoutes from "@/routes/upload.routes";
 import { errorHandler, notFound } from "@/middleware/errorHandler";
 
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/uploads", uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
