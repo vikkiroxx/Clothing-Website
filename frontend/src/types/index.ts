@@ -2,6 +2,7 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  image: string | null;
 }
 
 export interface Variant {
@@ -22,6 +23,7 @@ export interface Product {
   images: string[];
   category: Category;
   variants: Variant[];
+  createdAt: string;
 }
 
 export interface CartItem {
