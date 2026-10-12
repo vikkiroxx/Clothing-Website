@@ -35,6 +35,8 @@ docker compose up -d
 
 Or point `backend/.env`'s `DATABASE_URL` at your own existing Postgres instance.
 
+> If you already have a native Postgres service running locally, it will likely be bound to port 5432 and the Docker container won't be reachable on that port. Either stop the native service first, or skip Docker and point `DATABASE_URL` at your native instance instead.
+
 ### 2. Backend
 
 ```bash
