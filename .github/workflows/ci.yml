@@ -136,7 +136,7 @@ jobs:
         working-directory: backend
         run: npx prisma validate
       - name: Create disposable shadow database
-        run: psql "$DATABASE_URL" -c "CREATE DATABASE clothing_store_shadow;"
+        run: psql "postgresql://postgres:password@localhost:5432/clothing_store" -c "CREATE DATABASE clothing_store_shadow;"
       - name: Check migrations are in sync with schema
         working-directory: backend
         run: npx prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --shadow-database-url "$SHADOW_DATABASE_URL" --exit-code
