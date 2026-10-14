@@ -1,0 +1,228 @@
+CLOTHING WEBSITE — PROJECT OVERVIEW
+=====================================
+(Reference doc for discussing this project with an AI assistant or a new
+collaborator. Reflects the actual current state of the codebase.)
+
+------------------------------------------------------------
+1. WHAT THIS IS
+------------------------------------------------------------
+An e-commerce storefront for clothing (catalog, cart, orders). Monorepo
+with two apps:
+  - frontend/  — Next.js storefront (customer-facing UI)
+  - backend/   — Express REST API + PostgreSQL via Prisma ORM
+
+Single PostgreSQL database — no Mongo/second database. Catalog variant
+flexibility (sizes, colors, attributes) is handled with a JSONB column
+rather than a separate document store. Orders decrement variant stock
+inside a single DB transaction per checkout to avoid overselling.
+
+------------------------------------------------------------
+2. TECH STACK
+------------------------------------------------------------
+Frontend (frontend/):
+  - Next.js 16 (App Router), React 19, TypeScript
+  - Tailwind CSS v4 (CSS-based @theme tokens, no tailwind.config.js)
+  - Geist Sans + Geist Mono fonts (next/font/google)
+  - No component library, no icon library, no carousel library —
+    everything is hand-built with plain Tailwind/CSS (deliberate choice
+    to avoid dependencies for a project this size)
+
+Backend (backend/):
+  - Node.js + Express 5, TypeScript
+  - Prisma ORM, pinned to 6.19.3 (not the 8.0.0-rc the CLI defaults to —
+    v7+ dropped the classic `datasource url` schema syntax used here)
+  - PostgreSQL via @prisma/client
+  - JWT (jsonwebtoken) + bcryptjs for auth
+  - Zod for request validation
+  - Helmet, CORS, Morgan for security headers / CORS / request logging
+  - Cloudinary SDK + Multer for image uploads
+
+Database:
+  - PostgreSQL (local dev currently uses a native Windows Postgres
+    service; docker-compose.yml is also provided as an alternative —
+    only one should be running at a time since both default to port 5432)
+
+Image hosting:
+  - Cloudinary (free tier). Product images are stored as URLs in
+    Postgres; actual image bytes live on Cloudinary's CDN.
+
+CI/CD:
+  - GitHub Actions (.github/workflows/ci.yml): frontend lint, frontend
+    build (typecheck + Next.js production build), backend lint, backend
+    typecheck, backend build, Prisma migration validation (schema
+    validity + migrations-vs-schema drift check + fresh-DB deploy test
+    against a disposable Postgres service container), and a gitleaks
+    secret scan.
+
+------------------------------------------------------------
+3. DATABASE SCHEMA (Prisma models, backend/prisma/schema.prisma)
+------------------------------------------------------------
+enum Role          { CUSTOMER, ADMIN }
+enum OrderStatus   { PENDING, PAID, SHIPPED, DELIVERED, CANCELLED, REFUNDED }
+
+User
+  id, name, email (unique), password (bcrypt hash), role (default CUSTOMER)
+  relations: addresses[], orders[], cart (CartItem[])
+
+Address
+  id, userId -> User (cascade delete), line1, line2?, city, state,
+  pincode, phone, isDefault
+
+Category
+  id, name (unique), slug (unique)
+  relations: products[]
+
+Product
+  id, name, slug (unique), description, price (Decimal 10,2),
+  images (String[] — URLs, first = primary/front, second = hover/back),
+  attributes (Json?, for flexible catalog metadata), categoryId -> Category,
+  isActive (soft-delete flag), createdAt, updatedAt
+  relations: variants[]
+
+Variant
+  id, productId -> Product (cascade delete), size, color, sku (unique),
+  stock (Int), priceDelta (Decimal, default 0)
+  relations: cartItems[], orderItems[]
+
+CartItem
+  id, userId -> User (cascade delete), variantId -> Variant (cascade delete),
+  quantity (default 1)
+  unique constraint on [userId, variantId]
+
+Order
+  id, userId -> User, items (OrderItem[]), status (default PENDING),
+  totalAmount (Decimal), paymentId?, shippingAddress (Json snapshot),
+  createdAt, updatedAt
+
+OrderItem
+  id, orderId -> Order (cascade delete), variantId -> Variant,
+  quantity, price (Decimal, price at time of purchase)
+
+Seed data (backend/prisma/seed.ts, idempotent upserts):
+  - 1 test user (test@example.com / password123) with 2 addresses
+  - 4 categories: T-Shirts, Hoodies, Cargo Pants, Jackets
+  - 8 products across those categories, each with 2 image URLs
+    (front/back placeholder images) and 2-3 variants each
+
+------------------------------------------------------------
+4. BACKEND API (backend/src)
+------------------------------------------------------------
+Structure:
+  controllers/   — request handlers (one file per resource)
+  routes/        — Express routers, wire controllers + middleware
+  middleware/    — auth.ts (JWT verify + role check), errorHandler.ts,
+                   upload.ts (Multer config)
+  config/        — prisma.ts (PrismaClient singleton), cloudinary.ts
+  server.ts      — app entry point, mounts all routers
+
+Routes (all prefixed /api, plus a bare /health):
+  GET  /health                       — liveness check
+  POST /api/auth/signup              — create account, returns JWT
+  POST /api/auth/login               — returns JWT
+  GET  /api/products                 — list (supports ?category=slug&page=&limit=)
+  GET  /api/products/:slug           — single product (includes category + variants)
+  POST /api/products                 — admin only
+  PATCH/DELETE /api/products/:id     — admin only (delete = soft, sets isActive false)
+  GET  /api/categories               — list (each includes a representative
+                                        product image, derived at query time —
+                                        no separate Category.image column)
+  POST /api/categories               — admin only
+  GET/POST/PATCH/DELETE /api/cart    — authenticated user's cart
+  GET/POST /api/orders               — authenticated user's orders
+  POST /api/uploads                  — admin only; multipart image upload,
+                                        streams to Cloudinary, returns
+                                        { url, publicId } to attach to a product
+
+Auth model: JWT in `Authorization: Bearer <token>`, payload { id, role }.
+requireAuth verifies the token; requireAdmin additionally checks role === "ADMIN".
+Signup always creates CUSTOMER accounts — no client-settable role field, so
+there's no privilege-escalation path through the API.
+
+------------------------------------------------------------
+5. FRONTEND (frontend/src)
+------------------------------------------------------------
+Structure:
+  app/                — Next.js App Router pages
+    page.tsx                    — homepage
+    products/page.tsx           — all-products listing, ?category= filter
+    products/[slug]/page.tsx    — product detail page
+    layout.tsx                  — root layout (fonts, metadata, Header/Footer)
+    sitemap.ts / robots.ts      — SEO, pull real product slugs from the API
+  components/
+    layout/   — Header, Footer, CategoryDropdown (client component)
+    product/  — ProductCard, ProductGrid, ProductCarousel, CarouselTrack
+    category/ — CategoryGrid
+    ui/       — Badge, SectionHeading
+  lib/
+    api.ts              — generic fetch wrapper (get/post/patch/delete),
+                           auto-attaches JWT from localStorage if present
+    categories.ts        — getCategories() helper
+    product-helpers.ts   — getTotalStock(), getProductBadge() (derives
+                           NEW / LOW STOCK / SOLD OUT from real stock +
+                           createdAt — there is no sale/discount field)
+  types/index.ts        — TS types mirroring the Prisma models
+
+Pages/sections:
+  Homepage: hero banner -> category tile grid (images sourced from real
+  product photos) -> "Latest Drops" product carousel -> "Shop All" product
+  grid preview.
+  /products: category filter bar (plain links) + product grid, reads
+  ?category= from the URL.
+  /products/[slug]: image gallery, price, description, variant/stock list,
+  plus Product JSON-LD structured data for search engines.
+
+Visual design: committed dark theme (not OS light/dark toggling) —
+near-black background, a restrained teal accent (+violet secondary),
+hairline borders instead of drop shadows, Geist Mono used specifically
+for prices/SKUs/badges/nav labels as a "data terminal" accent voice.
+Product cards cross-fade between a primary and hover image on :hover
+(pure CSS, no JS). Subtle CSS-only grid-line background texture and
+HUD-style corner brackets on card hover reinforce the look. No sale
+badges (no compareAtPrice field exists); badges are genuinely derived
+from stock levels and recency instead.
+
+Product carousel: infinite-looping, including real trackpad/wheel
+scrolling (not just the arrow buttons) — implemented by rendering the
+product list three times back-to-back and silently repositioning
+scrollLeft when the user scrolls deep into a cloned copy, so it feels
+endless in both directions. Native scrollbar is hidden via a custom
+Tailwind utility; minimal circular prev/next arrow buttons are overlaid
+instead.
+
+SEO: per-page <title>/description via Next's Metadata API, Open Graph +
+Twitter card tags, canonical URLs, Product JSON-LD (price, availability)
+on product pages, auto-generated sitemap.xml (pulls real product slugs
+from the live API) and robots.txt.
+
+Next.js 16 note: next.config.ts has `cacheComponents: true` (strict
+caching/PPR mode) — any component that does an uncached fetch must be
+wrapped in <Suspense>, and dynamic routes without generateStaticParams
+need `export const instant = false` or `next build` fails. This bit the
+project twice already; worth knowing if adding new data-fetching pages.
+
+------------------------------------------------------------
+6. WHAT'S BUILT VS. NOT YET BUILT
+------------------------------------------------------------
+Built: product catalog browsing (home, category filter, product detail),
+category/product backend CRUD (admin-gated), cart/order backend logic,
+JWT auth backend, Cloudinary image upload endpoint, SEO, CI pipeline,
+dark "futuristic" visual redesign.
+
+NOT yet built on the frontend: no login/signup UI, no cart UI, no
+checkout flow, no account/order-history pages, no admin panel (the
+upload endpoint exists but nothing calls it yet — there's no UI to
+create/edit products). Header intentionally has no cart/account icons
+yet since those features don't exist — avoided adding dead UI
+affordances.
+
+------------------------------------------------------------
+7. LOCAL DEV
+------------------------------------------------------------
+  Backend:  cd backend  && npm install && npx prisma migrate dev &&
+            npm run prisma:generate && npx prisma db seed && npm run dev
+            (runs on http://localhost:5000, health check at /health)
+  Frontend: cd frontend && npm install && npm run dev
+            (runs on http://localhost:3000)
+  Database: either `docker compose up -d` (repo root) or point
+            backend/.env's DATABASE_URL at an existing local Postgres —
+            don't run both at once, they collide on port 5432.
