@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCategories } from "@/lib/categories";
 import { CategoryDropdown } from "@/components/layout/CategoryDropdown";
+import { AudienceToggle } from "@/components/layout/AudienceToggle";
 
 export async function Header() {
   const categories = await getCategories();
@@ -13,6 +14,7 @@ export async function Header() {
         </Link>
 
         <nav className="flex items-center gap-6">
+          <AudienceToggle />
           <Link
             href="/"
             className="font-mono text-xs tracking-widest text-foreground-muted uppercase hover:text-foreground"
@@ -40,6 +42,7 @@ export function HeaderFallback() {
           Clothing<span className="text-accent">{"//"}</span>Store
         </Link>
         <nav className="flex items-center gap-6">
+          <AudienceToggle />
           <Link
             href="/"
             className="font-mono text-xs tracking-widest text-foreground-muted uppercase hover:text-foreground"

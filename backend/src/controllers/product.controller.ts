@@ -1,13 +1,24 @@
 import { Request, Response } from "express";
+import { Audience } from "@prisma/client";
 import { prisma } from "@/config/prisma";
 
+const AUDIENCES = new Set(Object.values(Audience));
+
 export async function listProducts(req: Request, res: Response) {
-  const { category, page = "1", limit = "20" } = req.query as Record<string, string | undefined>;
+  const {
+    category,
+    audience,
+    page = "1",
+    limit = "20",
+  } = req.query as Record<string, string | undefined>;
+
+  const audienceFilter = audience && AUDIENCES.has(audience as Audience) ? (audience as Audience) : undefined;
 
   const products = await prisma.product.findMany({
     where: {
       isActive: true,
       ...(category ? { category: { slug: category } } : {}),
+      ...(audienceFilter ? { audience: audienceFilter } : {}),
     },
     include: { category: true, variants: true },
     skip: (Number(page) - 1) * Number(limit),
@@ -32,7 +43,8 @@ export async function getProduct(req: Request, res: Response) {
 }
 
 export async function createProduct(req: Request, res: Response) {
-  const { name, slug, description, price, images, categoryId, attributes, variants } = req.body;
+  const { name, slug, description, price, images, audience, categoryId, attributes, variants } =
+    req.body;
 
   const product = await prisma.product.create({
     data: {
@@ -41,6 +53,7 @@ export async function createProduct(req: Request, res: Response) {
       description,
       price,
       images,
+      audience,
       categoryId,
       attributes,
       variants: {

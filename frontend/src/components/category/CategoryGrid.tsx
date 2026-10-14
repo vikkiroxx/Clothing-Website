@@ -1,9 +1,14 @@
 import Link from "next/link";
+import { Audience } from "@/types";
 import { getCategories } from "@/lib/categories";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-export async function CategoryGrid() {
-  const categories = await getCategories();
+interface CategoryGridProps {
+  audience: Audience;
+}
+
+export async function CategoryGrid({ audience }: CategoryGridProps) {
+  const categories = await getCategories(audience);
 
   if (categories.length === 0) return null;
 
@@ -14,7 +19,7 @@ export async function CategoryGrid() {
         {categories.map((category) => (
           <Link
             key={category.id}
-            href={`/products?category=${category.slug}`}
+            href={`/products?audience=${audience}&category=${category.slug}`}
             className="group corner-brackets card-hover-glow relative block aspect-square overflow-hidden rounded-[var(--radius-card)] border border-border bg-background-elevated"
           >
             {category.image && (

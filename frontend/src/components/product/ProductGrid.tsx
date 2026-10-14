@@ -1,15 +1,17 @@
 import { api } from "@/lib/api";
-import { Product } from "@/types";
+import { Audience, Product } from "@/types";
 import { ProductCard } from "@/components/product/ProductCard";
 
 interface ProductGridProps {
   category?: string;
+  audience?: Audience;
   limit?: number;
 }
 
-async function getProducts({ category, limit }: ProductGridProps): Promise<Product[]> {
+async function getProducts({ category, audience, limit }: ProductGridProps): Promise<Product[]> {
   const params = new URLSearchParams();
   if (category) params.set("category", category);
+  if (audience) params.set("audience", audience);
   if (limit) params.set("limit", String(limit));
   const query = params.toString();
 
@@ -20,8 +22,8 @@ async function getProducts({ category, limit }: ProductGridProps): Promise<Produ
   }
 }
 
-export async function ProductGrid({ category, limit }: ProductGridProps) {
-  const products = await getProducts({ category, limit });
+export async function ProductGrid({ category, audience, limit }: ProductGridProps) {
+  const products = await getProducts({ category, audience, limit });
 
   if (products.length === 0) {
     return (

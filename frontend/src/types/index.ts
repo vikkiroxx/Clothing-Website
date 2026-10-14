@@ -1,3 +1,5 @@
+export type Audience = "MEN" | "WOMEN" | "KIDS";
+
 export interface Category {
   id: string;
   name: string;
@@ -21,6 +23,7 @@ export interface Product {
   description: string;
   price: string;
   images: string[];
+  audience: Audience;
   category: Category;
   variants: Variant[];
   createdAt: string;
