@@ -20,11 +20,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
   }));
 
-  return [
-    {
-      url: siteUrl,
-      lastModified: new Date(),
-    },
-    ...productEntries,
+  const staticEntries: MetadataRoute.Sitemap = [
+    { url: siteUrl, lastModified: new Date() },
+    { url: `${siteUrl}/men`, lastModified: new Date() },
+    { url: `${siteUrl}/women`, lastModified: new Date() },
+    { url: `${siteUrl}/kids`, lastModified: new Date() },
+    { url: `${siteUrl}/products`, lastModified: new Date() },
   ];
+
+  return [...staticEntries, ...productEntries];
 }
