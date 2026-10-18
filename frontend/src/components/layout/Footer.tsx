@@ -33,6 +33,19 @@ export async function Footer() {
               </ul>
             </div>
           )}
+
+          <div>
+            <p className="font-mono text-xs tracking-widest text-foreground-muted uppercase">
+              Support
+            </p>
+            <ul className="mt-3 space-y-2">
+              <li>
+                <Link href="/contact" className="text-sm text-foreground-muted hover:text-accent">
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <p className="mt-10 font-mono text-xs text-foreground-muted">
@@ -50,6 +63,12 @@ export function FooterFallback() {
         <p className="text-sm font-bold tracking-widest text-foreground uppercase">
           Clothing<span className="text-accent">{"//"}</span>Store
         </p>
+        <Link
+          href="/contact"
+          className="mt-4 block w-fit font-mono text-xs tracking-widest text-foreground-muted uppercase hover:text-accent"
+        >
+          Contact Us
+        </Link>
         <p className="mt-10 font-mono text-xs text-foreground-muted">
           © {COPYRIGHT_YEAR} Clothing Store.
         </p>

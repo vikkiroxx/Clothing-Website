@@ -35,11 +35,44 @@ export interface CartItem {
   variant: Variant & { product: Product };
 }
 
+export interface Address {
+  id: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+  isDefault: boolean;
+}
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  createdAt?: string;
+  addresses?: Address[];
+}
+
+export interface ShippingAddress {
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+}
+
 export interface Order {
   id: string;
   status: string;
   totalAmount: string;
+  shippingAddress: ShippingAddress;
+  courier: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
   createdAt: string;
+  updatedAt: string;
   items: Array<{
     id: string;
     quantity: number;

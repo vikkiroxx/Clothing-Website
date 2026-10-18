@@ -5,13 +5,20 @@ import { ProductCard } from "@/components/product/ProductCard";
 interface ProductGridProps {
   category?: string;
   audience?: Audience;
+  search?: string;
   limit?: number;
 }
 
-async function getProducts({ category, audience, limit }: ProductGridProps): Promise<Product[]> {
+async function getProducts({
+  category,
+  audience,
+  search,
+  limit,
+}: ProductGridProps): Promise<Product[]> {
   const params = new URLSearchParams();
   if (category) params.set("category", category);
   if (audience) params.set("audience", audience);
+  if (search) params.set("search", search);
   if (limit) params.set("limit", String(limit));
   const query = params.toString();
 
@@ -22,13 +29,13 @@ async function getProducts({ category, audience, limit }: ProductGridProps): Pro
   }
 }
 
-export async function ProductGrid({ category, audience, limit }: ProductGridProps) {
-  const products = await getProducts({ category, audience, limit });
+export async function ProductGrid({ category, audience, search, limit }: ProductGridProps) {
+  const products = await getProducts({ category, audience, search, limit });
 
   if (products.length === 0) {
     return (
       <p className="font-mono text-sm text-foreground-muted">
-        No products found{category ? " in this category" : ""}.
+        No products found{search ? ` for "${search}"` : category ? " in this category" : ""}.
       </p>
     );
   }

@@ -8,6 +8,7 @@ export async function listProducts(req: Request, res: Response) {
   const {
     category,
     audience,
+    search,
     page = "1",
     limit = "20",
   } = req.query as Record<string, string | undefined>;
@@ -19,6 +20,14 @@ export async function listProducts(req: Request, res: Response) {
       isActive: true,
       ...(category ? { category: { slug: category } } : {}),
       ...(audienceFilter ? { audience: audienceFilter } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { description: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     include: { category: true, variants: true },
     skip: (Number(page) - 1) * Number(limit),
