@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Header, HeaderFallback } from "@/components/layout/Header";
+import { Header } from "@/components/layout/Header";
 import { Footer, FooterFallback } from "@/components/layout/Footer";
+import { AuthProvider } from "@/lib/auth-context";
+import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,13 +42,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Suspense fallback={<HeaderFallback />}>
-          <Header />
-        </Suspense>
-        <div className="flex-1">{children}</div>
-        <Suspense fallback={<FooterFallback />}>
-          <Footer />
-        </Suspense>
+        <AuthProvider>
+          <CartProvider>
+            <Header />
+            <div className="flex-1">{children}</div>
+            <Suspense fallback={<FooterFallback />}>
+              <Footer />
+            </Suspense>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

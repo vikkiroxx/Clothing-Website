@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { Product } from "@/types";
 import { getProductBadge } from "@/lib/product-helpers";
 import { Badge } from "@/components/ui/Badge";
+import { AddToCart } from "@/components/product/AddToCart";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -121,32 +122,7 @@ async function ProductDetail({ slug }: { slug: string }) {
           </div>
           <p className="mt-4 text-sm text-foreground-muted">{product.description}</p>
 
-          {product.variants.length > 0 && (
-            <div className="mt-8 border-t border-border pt-6">
-              <p className="font-mono text-xs tracking-widest text-foreground-muted uppercase">
-                Available options
-              </p>
-              <ul className="mt-3 space-y-2">
-                {product.variants.map((variant) => (
-                  <li
-                    key={variant.id}
-                    className="flex items-center justify-between rounded-[var(--radius-card)] border border-border px-3 py-2 text-sm"
-                  >
-                    <span className="font-mono text-foreground">
-                      {variant.size} / {variant.color}
-                    </span>
-                    <span
-                      className={`font-mono text-xs uppercase ${
-                        variant.stock > 0 ? "text-foreground-muted" : "text-danger"
-                      }`}
-                    >
-                      {variant.stock > 0 ? `${variant.stock} in stock` : "Out of stock"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <AddToCart product={product} />
         </div>
       </div>
     </>
