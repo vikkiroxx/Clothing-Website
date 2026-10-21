@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
+import { launchCheckout } from "@/lib/cashfree-checkout";
 import { ORDER_STEPS, STATUS_STYLES, isExceptionStatus, orderStepIndex } from "@/lib/order-helpers";
 import { Order } from "@/types";
 
@@ -16,6 +17,23 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+
+  async function handlePayNow() {
+    setPaying(true);
+    setPayError(null);
+    try {
+      const payment = await api.post<{ sessionId: string | null }>(`/orders/${id}/pay`);
+      if (!payment.sessionId) {
+        throw new Error("Payment could not be started. Please try again.");
+      }
+      await launchCheckout(payment.sessionId);
+    } catch (err) {
+      setPayError((err as Error).message);
+      setPaying(false);
+    }
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -131,6 +149,23 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
           </div>
         )}
       </section>
+
+      {order.status === "PENDING" && (
+        <section className="rounded-[var(--radius-card)] border border-accent/40 bg-accent-soft px-6 py-5">
+          <p className="font-mono text-sm text-foreground">
+            This order hasn&rsquo;t been paid yet.
+          </p>
+          {payError && <p className="mt-2 font-mono text-xs text-danger">{payError}</p>}
+          <button
+            type="button"
+            onClick={handlePayNow}
+            disabled={paying}
+            className="mt-4 rounded-[var(--radius-card)] border border-accent px-6 py-3 font-mono text-xs tracking-widest text-accent uppercase hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {paying ? "Redirecting…" : "Pay now"}
+          </button>
+        </section>
+      )}
 
       <section>
         <p className="font-mono text-xs tracking-widest text-foreground-muted uppercase">

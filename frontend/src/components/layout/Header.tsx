@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AudienceToggle } from "@/components/layout/AudienceToggle";
 import { AccountLink } from "@/components/layout/AccountLink";
+import { AdminLink } from "@/components/layout/AdminLink";
 import { CartLink } from "@/components/layout/CartLink";
 import { HeaderSearch } from "@/components/layout/HeaderSearch";
 
@@ -20,6 +21,7 @@ export function Header() {
           >
             Home
           </Link>
+          <AdminLink />
           <Link
             href="/products"
             className="font-mono text-xs tracking-widest text-foreground-muted uppercase hover:text-foreground"

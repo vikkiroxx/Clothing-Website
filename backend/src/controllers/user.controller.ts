@@ -22,6 +22,7 @@ const SELECT = {
   id: true,
   name: true,
   email: true,
+  role: true,
   createdAt: true,
   addresses: true,
 } as const;

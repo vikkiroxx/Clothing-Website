@@ -82,6 +82,26 @@ jobs:
         working-directory: backend
         run: npm run typecheck
 
+  backend-test:
+    name: Backend / Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+      - name: Run tests
+        working-directory: backend
+        run: npm test
+
   backend-build:
     name: Backend / Build
     runs-on: ubuntu-latest

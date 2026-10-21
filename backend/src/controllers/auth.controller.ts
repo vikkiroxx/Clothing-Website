@@ -39,7 +39,10 @@ export async function signup(req: Request, res: Response) {
   });
 
   const token = signToken(user);
-  res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  res.status(201).json({
+    token,
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+  });
 }
 
 export async function login(req: Request, res: Response) {
@@ -55,5 +58,8 @@ export async function login(req: Request, res: Response) {
   }
 
   const token = signToken(user);
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  res.json({
+    token,
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+  });
 }

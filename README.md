@@ -82,3 +82,4 @@ frontend/
 
 - Orders decrement variant stock inside a single Postgres transaction (`order.controller.ts`) to avoid overselling under concurrent checkouts.
 - Product/variant data uses JSONB (`attributes` field) for flexible catalog metadata, avoiding the need for a second database.
+- Payments — provider-agnostic gateway integration (currently Cashfree), checkout/webhook/refund flow, and how to add another provider: see [`backend/PAYMENTS.md`](backend/PAYMENTS.md).

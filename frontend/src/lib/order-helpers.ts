@@ -1,5 +1,7 @@
 export const ORDER_STEPS = ["PENDING", "PAID", "SHIPPED", "DELIVERED"] as const;
 
+export const ALL_STATUSES = [...ORDER_STEPS, "CANCELLED", "REFUNDED"] as const;
+
 export const STATUS_STYLES: Record<string, string> = {
   PENDING: "border-accent-2/40 text-accent-2 bg-accent-2/10",
   PAID: "border-accent/40 text-accent bg-accent-soft",

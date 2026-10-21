@@ -1,10 +1,11 @@
-export type Audience = "MEN" | "WOMEN" | "KIDS";
+export type Audience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
 
 export interface Category {
   id: string;
   name: string;
   slug: string;
   image: string | null;
+  productCount?: number;
 }
 
 export interface Variant {
@@ -26,6 +27,7 @@ export interface Product {
   audience: Audience;
   category: Category;
   variants: Variant[];
+  isActive: boolean;
   createdAt: string;
 }
 
@@ -46,10 +48,13 @@ export interface Address {
   isDefault: boolean;
 }
 
+export type Role = "CUSTOMER" | "ADMIN";
+
 export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  role: Role;
   createdAt?: string;
   addresses?: Address[];
 }
@@ -63,6 +68,36 @@ export interface ShippingAddress {
   phone: string;
 }
 
+export interface Refund {
+  id: string;
+  refundRef: string;
+  providerRefundId: string | null;
+  amount: string;
+  status: "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface Payment {
+  id: string;
+  provider: "CASHFREE";
+  providerOrderId: string;
+  providerPaymentId: string | null;
+  amount: string;
+  currency: string;
+  status:
+    | "PENDING"
+    | "PROCESSING"
+    | "SUCCEEDED"
+    | "FAILED"
+    | "CANCELLED"
+    | "REFUNDED"
+    | "PARTIALLY_REFUNDED";
+  failureMessage: string | null;
+  refunds: Refund[];
+  createdAt: string;
+}
+
 export interface Order {
   id: string;
   status: string;
@@ -73,10 +108,23 @@ export interface Order {
   trackingUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  // Only present on admin endpoints (GET/PATCH /api/admin/orders/*).
+  user?: { id: string; name: string; email: string };
+  payments?: Payment[];
   items: Array<{
     id: string;
     quantity: number;
     price: string;
     variant: Variant & { product: Product };
   }>;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  comment: string;
+  isRead: boolean;
+  createdAt: string;
 }
