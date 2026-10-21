@@ -10,8 +10,8 @@ const TOKEN_KEY = "token";
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  signup: (name: string, email: string, password: string) => Promise<AuthUser>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     localStorage.setItem(TOKEN_KEY, token);
     setUser(loggedInUser);
+    return loggedInUser;
   }
 
   async function signup(name: string, email: string, password: string) {
@@ -61,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     localStorage.setItem(TOKEN_KEY, token);
     setUser(newUser);
+    return newUser;
   }
 
   function logout() {

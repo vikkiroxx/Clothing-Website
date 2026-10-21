@@ -11,14 +11,29 @@ import cartRoutes from "@/routes/cart.routes";
 import orderRoutes from "@/routes/order.routes";
 import uploadRoutes from "@/routes/upload.routes";
 import contactRoutes from "@/routes/contact.routes";
+import adminRoutes from "@/routes/admin.routes";
+import paymentRoutes from "@/routes/payment.routes";
 import { errorHandler, notFound } from "@/middleware/errorHandler";
+import { validateEnv } from "@/config/env";
+
+validateEnv();
 
 const app = express();
 
 app.use(helmet());
 app.use(cors());
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(
+  express.json({
+    // Captures the exact bytes received into req.rawBody, alongside the
+    // normal parsed req.body — needed to verify the Cashfree webhook
+    // signature, which is computed over the raw payload, not a
+    // JSON.parse/stringify round-trip of it.
+    verify: (req, _res, buf) => {
+      (req as express.Request & { rawBody?: string }).rawBody = buf.toString("utf8");
+    },
+  }),
+);
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
@@ -30,6 +45,8 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

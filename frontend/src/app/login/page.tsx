@@ -1,30 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { sanitizeRedirect } from "@/lib/safe-redirect";
+import { AuthUser } from "@/types";
 
-export default function LoginPage() {
-  const { login } = useAuth();
+function resolveDestination(role: AuthUser["role"], next: string | null): string {
+  const safeNext = sanitizeRedirect(next);
+  if (role === "ADMIN") {
+    return safeNext && safeNext.startsWith("/admin") ? safeNext : "/admin";
+  }
+  // A customer must never land in the admin area, even via a crafted `next`.
+  return safeNext && !safeNext.startsWith("/admin") ? safeNext : "/profile";
+}
+
+function LoginForm() {
+  const { user, loading: authLoading, login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    // An already-authenticated admin shouldn't sit on the login page.
+    if (!authLoading && user?.role === "ADMIN") {
+      router.replace(resolveDestination(user.role, next));
+    }
+  }, [authLoading, user, next, router]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      await login(email, password);
-      router.push("/profile");
+      const loggedInUser = await login(email, password);
+      router.push(resolveDestination(loggedInUser.role, next));
     } catch (err) {
       setError((err as Error).message);
       setSubmitting(false);
     }
+  }
+
+  if (authLoading || user?.role === "ADMIN") {
+    return (
+      <main className="mx-auto max-w-sm px-6 py-20 text-center">
+        <p className="font-mono text-xs tracking-widest text-foreground-muted uppercase">
+          Loading…
+        </p>
+      </main>
+    );
   }
 
   return (
@@ -87,5 +118,21 @@ export default function LoginPage() {
         </Link>
       </p>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-sm px-6 py-20 text-center">
+          <p className="font-mono text-xs tracking-widest text-foreground-muted uppercase">
+            Loading…
+          </p>
+        </main>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

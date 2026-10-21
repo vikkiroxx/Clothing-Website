@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer, FooterFallback } from "@/components/layout/Footer";
+import { ConditionalChrome } from "@/components/layout/ConditionalChrome";
 import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
@@ -44,11 +45,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <CartProvider>
-            <Header />
-            <div className="flex-1">{children}</div>
-            <Suspense fallback={<FooterFallback />}>
-              <Footer />
-            </Suspense>
+            <ConditionalChrome
+              header={<Header />}
+              footer={
+                <Suspense fallback={<FooterFallback />}>
+                  <Footer />
+                </Suspense>
+              }
+            >
+              {children}
+            </ConditionalChrome>
           </CartProvider>
         </AuthProvider>
       </body>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 // Placeholder brand details — swap these for the real values.
@@ -15,10 +16,24 @@ const CONTACT_EMAIL = "hello@clothingstore.com";
 const EMPTY_FORM = { name: "", email: "", phone: "", comment: "" };
 
 export default function ContactPage() {
+  const { user } = useAuth();
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const phone = user.addresses?.find((a) => a.isDefault)?.phone ?? user.addresses?.[0]?.phone;
+    // Prefill from the logged-in profile, but never clobber anything already typed.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setForm((f) => ({
+      name: f.name || user.name,
+      email: f.email || user.email,
+      phone: f.phone || phone || f.phone,
+      comment: f.comment,
+    }));
+  }, [user]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -27,7 +42,7 @@ export default function ContactPage() {
     try {
       await api.post("/contact", form);
       setSubmitted(true);
-      setForm(EMPTY_FORM);
+      setForm((f) => ({ ...f, comment: "" }));
     } catch (err) {
       setError((err as Error).message);
     } finally {

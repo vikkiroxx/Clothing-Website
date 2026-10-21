@@ -6,8 +6,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { api } from "@/lib/api";
+import { launchCheckout } from "@/lib/cashfree-checkout";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Order } from "@/types";
+
+interface CheckoutResponse extends Order {
+  payment: { providerOrderId: string; sessionId: string | null } | null;
+  paymentError?: string;
+}
 
 function unitPrice(item: { variant: { priceDelta: string; product: { price: string } } }) {
   return Number(item.variant.product.price) + Number(item.variant.priceDelta);
@@ -81,7 +87,7 @@ export default function CartPage() {
     setPlacing(true);
     setPlaceError(null);
     try {
-      await api.post<Order>("/orders", {
+      const order = await api.post<CheckoutResponse>("/orders", {
         shippingAddress: {
           line1: address.line1,
           line2: address.line2,
@@ -91,8 +97,19 @@ export default function CartPage() {
           phone: address.phone,
         },
       });
+      // The order is placed (and stock/cart already updated server-side)
+      // regardless of what happens next — refresh the cart either way.
       await refreshCart();
-      router.push("/profile");
+
+      if (order.payment?.sessionId) {
+        await launchCheckout(order.payment.sessionId);
+        // launchCheckout redirects the browser away; nothing after this runs.
+        return;
+      }
+
+      // Order placed, but payment couldn't start (gateway hiccup) — send the
+      // customer to the order page, where they can retry payment.
+      router.push(`/orders/${order.id}`);
     } catch (err) {
       setPlaceError((err as Error).message);
     } finally {
