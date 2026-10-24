@@ -41,6 +41,22 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+// Holds a signup attempt between "request OTP" and "verify OTP" — the real
+// User row is only created once the code is confirmed. Upserted by email, so
+// requesting a new code for the same address replaces the previous attempt
+// rather than accumulating rows.
+model PendingSignup {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String
+  password   String // already bcrypt-hashed, same as User.password
+  codeHash   String // bcrypt hash of the 6-digit OTP, never stored in plaintext
+  attempts   Int      @default(0)
+  expiresAt  DateTime
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+}
+
 model ContactMessage {
   id        String   @id @default(uuid())
   name      String

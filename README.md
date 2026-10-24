@@ -1,4 +1,4 @@
-# Clothing Website
+# The Off-Grid
 
 E-commerce storefront (catalog, cart, orders) — Next.js frontend, Express/Prisma backend, single PostgreSQL database.
 

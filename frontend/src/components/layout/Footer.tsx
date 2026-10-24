@@ -11,7 +11,7 @@ export async function Footer() {
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
           <p className="text-sm font-bold tracking-widest text-foreground uppercase">
-            Clothing<span className="text-accent">{"//"}</span>Store
+            The Off<span className="text-accent">-</span>Grid
           </p>
 
           {categories.length > 0 && (
@@ -49,7 +49,7 @@ export async function Footer() {
         </div>
 
         <p className="mt-10 font-mono text-xs text-foreground-muted">
-          © {COPYRIGHT_YEAR} Clothing Store.
+          © {COPYRIGHT_YEAR} The Off-Grid.
         </p>
       </div>
     </footer>
@@ -61,7 +61,7 @@ export function FooterFallback() {
     <footer className="mt-16 border-t border-border">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <p className="text-sm font-bold tracking-widest text-foreground uppercase">
-          Clothing<span className="text-accent">{"//"}</span>Store
+          The Off<span className="text-accent">-</span>Grid
         </p>
         <Link
           href="/contact"
@@ -70,7 +70,7 @@ export function FooterFallback() {
           Contact Us
         </Link>
         <p className="mt-10 font-mono text-xs text-foreground-muted">
-          © {COPYRIGHT_YEAR} Clothing Store.
+          © {COPYRIGHT_YEAR} The Off-Grid.
         </p>
       </div>
     </footer>
