@@ -10,7 +10,7 @@ export function Header() {
     <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-lg font-bold tracking-widest text-foreground uppercase">
-          Clothing<span className="text-accent">{"//"}</span>Store
+          The Off<span className="text-accent">-</span>Grid
         </Link>
 
         <nav className="flex items-center gap-6">

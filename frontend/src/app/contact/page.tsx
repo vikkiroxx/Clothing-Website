@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 // Placeholder brand details — swap these for the real values.
-const MANUFACTURER = "Clothing Store Pvt. Ltd.";
+const MANUFACTURER = "The Off-Grid Pvt. Ltd.";
 const ADDRESS_LINES = ["123 Fashion Street, Bandra West", "Mumbai, Maharashtra 400050", "India"];
 const INSTAGRAM_HANDLE = "@clothingstore";
 const INSTAGRAM_URL = "https://instagram.com/clothingstore";

@@ -11,7 +11,8 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
-  signup: (name: string, email: string, password: string) => Promise<AuthUser>;
+  requestSignupOtp: (name: string, email: string, password: string) => Promise<void>;
+  verifySignupOtp: (email: string, code: string) => Promise<AuthUser>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
@@ -55,10 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return loggedInUser;
   }
 
-  async function signup(name: string, email: string, password: string) {
+  async function requestSignupOtp(name: string, email: string, password: string) {
+    await api.post<{ message: string }>("/auth/signup/request-otp", { name, email, password });
+  }
+
+  async function verifySignupOtp(email: string, code: string) {
     const { token, user: newUser } = await api.post<{ token: string; user: AuthUser }>(
-      "/auth/signup",
-      { name, email, password },
+      "/auth/signup/verify-otp",
+      { email, code },
     );
     localStorage.setItem(TOKEN_KEY, token);
     setUser(newUser);
@@ -71,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, refresh }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, requestSignupOtp, verifySignupOtp, logout, refresh }}
+    >
       {children}
     </AuthContext.Provider>
   );

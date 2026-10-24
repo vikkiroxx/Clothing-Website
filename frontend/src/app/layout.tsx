@@ -23,13 +23,13 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Clothing Store",
-    template: "%s | Clothing Store",
+    default: "The Off-Grid",
+    template: "%s | The Off-Grid",
   },
   description: "Shop the latest arrivals — t-shirts, apparel, and more.",
   openGraph: {
     type: "website",
-    siteName: "Clothing Store",
+    siteName: "The Off-Grid",
   },
   twitter: {
     card: "summary_large_image",
